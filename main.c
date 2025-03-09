@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
         
@@ -136,8 +139,6 @@ int parse(char *buf, struct request *r)
     return 0;
 }
 
-#include <sys/stat.h>
-
 int acces(char *real, char *path)
 {
     char tmp[MAX_PATH];
@@ -149,21 +150,38 @@ int acces(char *real, char *path)
     return 0;
 }
 
-#include <fcntl.h>
-#include <sys/mman.h>
-
 char *stype(char *file)
 {
     char *type = "text/plain";
 
     if (strstr(file, ".html"))
         type = "text/html";
+    else if (strstr(file, ".css"))
+        type = "text/css";
+
     else if (strstr(file, ".gif"))
         type = "image/gif";
     else if (strstr(file, ".png"))
         type = "image/png";
     else if (strstr(file, ".jpg"))
         type = "image/jpeg";
+
+    else if (strstr(file, ".js"))
+        type = "application/javascript";
+    else if (strstr(file, ".json"))
+        type = "application/json";
+    else if (strstr(file, ".xml"))
+        type = "application/xml";
+
+    else if (strstr(file, ".mp4"))
+        type = "video/mp4";
+    else if (strstr(file, ".webm"))
+        type = "video/webm";
+    else if (strstr(file, ".mov"))
+        type = "video/quicktime";
+
+    else if (strstr(file, ".mp3"))
+        type = "audio/mp3";
 
     return type;
 }
