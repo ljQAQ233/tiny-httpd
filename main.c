@@ -191,6 +191,23 @@ char *stype(char *file)
     return type;
 }
 
+int slook(char *path, int *sz)
+{
+    struct stat sb;
+    if (stat(path, &sb) < 0)
+        return -1;
+
+    // redirect
+    if (S_ISDIR(sb.st_mode))
+    {
+        strcat(path, "/index.html");
+        return slook(path, sz);
+    }
+
+    *sz = sb.st_size;
+    return 0;
+}
+
 int serve(struct request *r)
 {
     // static files
@@ -201,16 +218,15 @@ int serve(struct request *r)
         return -1;
     }
 
-    printf("GET %s\n", path);
-
-    struct stat sb;
-    if (stat(path, &sb) < 0)
+    int len;
+    if (slook(path, &len))
     {
         tiny_err(404);
         return -1;
     }
+    
+    printf("GET %s\n", path);
 
-    int len = sb.st_size;
     int fd = open(path, O_RDONLY);
     if (fd < 0)
     {
