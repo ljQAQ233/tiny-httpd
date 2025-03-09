@@ -55,7 +55,12 @@ int tiny_rp(int err, char *type, int len, void *body)
 }
 
 char *tiny_ver = "tiny/1.0";
-char tiny_root[MAX_PATH]; // site root path
+
+struct tiny
+{
+    char version[8];
+    char root[MAX_PATH];
+} tiny;
 
 int tiny_err(int err)
 {
@@ -142,9 +147,9 @@ int parse(char *buf, struct request *r)
 int acces(char *real, char *path)
 {
     char tmp[MAX_PATH];
-    sprintf(tmp, "site" "%s", path);
+    sprintf(tmp, "%s" "%s", tiny.root, path);
     realpath(tmp, real);
-    if (strncmp(real, tiny_root, strlen(tiny_root)))
+    if (strncmp(real, tiny.root, strlen(tiny.root)))
         return -1;
 
     return 0;
@@ -196,14 +201,14 @@ int serve(struct request *r)
         return -1;
     }
 
+    printf("GET %s\n", path);
+
     struct stat sb;
     if (stat(path, &sb) < 0)
     {
         tiny_err(404);
         return -1;
     }
-
-    printf("GET %s\n", path);
 
     int len = sb.st_size;
     int fd = open(path, O_RDONLY);
@@ -262,11 +267,12 @@ die:
 
 int main(int argc, char *argv[])
 {
-    getcwd(tiny_root, sizeof(tiny_root));
-    strcat(tiny_root, "/site");
+    if (argc != 3)
+        return 1;
+    
+    // init
+    realpath(argv[1], tiny.root);
+    int port = atoi(argv[2]);
 
-    if (argc != 2)
-        return tiny_main(8082);
-
-    return tiny_main(atoi(argv[1]));
+    return tiny_main(port);
 }
